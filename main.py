@@ -8,65 +8,65 @@ import os
 import pyodbc
 import pandas as pd
 
-class elem:
-    def __init__(self,
-                 tool_code, 
-                 tool_name, 
-                 delivery_basis, 
-                 scope_of_contracts_ed, 
-                 scope_of_contracts_rub,
-                 rub,
-                 persent,
-                 minimal,
-                 weighted_average,
-                 maximal,
-                 market,
-                 best_offer, 
-                 best_demand,
-                 number_of_contracts
-                ):
-        self.tool_code = tool_code
-        self.tool_name = tool_name
-        self.delivery_basis = delivery_basis
-        self.scope_of_contracts_ed = scope_of_contracts_ed 
-        self.scope_of_contracts_rub = scope_of_contracts_rub
-        self.rub = rub
-        self.persent = persent
-        self.minimal = minimal
-        self.weighted_average = weighted_average
-        self.maximal = maximal
-        self.market = market
-        self.best_offer = best_offer 
-        self.best_demand = best_demand
-        self.number_of_contracts = number_of_contracts
+# class elem:
+#     def __init__(self,
+#                  tool_code, 
+#                  tool_name, 
+#                  delivery_basis, 
+#                  scope_of_contracts_ed, 
+#                  scope_of_contracts_rub,
+#                  rub,
+#                  persent,
+#                  minimal,
+#                  weighted_average,
+#                  maximal,
+#                  market,
+#                  best_offer, 
+#                  best_demand,
+#                  number_of_contracts
+#                 ):
+#         self.tool_code = tool_code
+#         self.tool_name = tool_name
+#         self.delivery_basis = delivery_basis
+#         self.scope_of_contracts_ed = scope_of_contracts_ed 
+#         self.scope_of_contracts_rub = scope_of_contracts_rub
+#         self.rub = rub
+#         self.persent = persent
+#         self.minimal = minimal
+#         self.weighted_average = weighted_average
+#         self.maximal = maximal
+#         self.market = market
+#         self.best_offer = best_offer 
+#         self.best_demand = best_demand
+#         self.number_of_contracts = number_of_contracts
    
-one = [
-    ["Контролер поставки"],
-    ["Код биржевого товара", "руб"],
-    ["Код биржевого товара","Руб."],
-    ["Код\nИнструмента", "Базис поставки"],
-    ["Код инструмента"],
-    ["Код\nИнструмента", "Объем Договоров в тоннах"],
-    ["Код\nИнструмента", "Объем\nДоговоров\nв единицах\nизмерения"]
-]
+# one = [
+#     ["Контролер поставки"],
+#     ["Код биржевого товара", "руб"],
+#     ["Код биржевого товара","Руб."],
+#     ["Код\nИнструмента", "Базис поставки"],
+#     ["Код инструмента"],
+#     ["Код\nИнструмента", "Объем Договоров в тоннах"],
+#     ["Код\nИнструмента", "Объем\nДоговоров\nв единицах\nизмерения"]
+# ]
 
-# TODO
-def typeOfTable(xls):
-    if not(xls.loc[xls[xls.columns[0]] == one[0][0]].empty):
-        return 1
-    if not(xls.loc[xls[xls.columns[0]] == one[1][0]].empty) and not(xls.loc[xls[xls.columns[6]] == one[1][1]].empty):
-        return 2
-    if not(xls.loc[xls[xls.columns[0]] == one[2][0]].empty) and not(xls.loc[xls[xls.columns[5]] == one[2][1]].empty):
-        return 3
-    if not(xls.loc[xls[xls.columns[0]] == one[3][0]].empty) and not(xls.loc[xls[xls.columns[2]] == one[3][1]].empty):
-        return 4
-    if not(xls.loc[xls[xls.columns[0]] == one[4][0]].empty):
-        return 5
-    if not(xls.loc[xls[xls.columns[0]] == one[5][0]].empty) and not(xls.loc[xls[xls.columns[3]] == one[5][1]].empty):
-        return 6
-    if not(xls.loc[xls[xls.columns[0]] == one[6][0]].empty) and not(xls.loc[xls[xls.columns[3]] == one[6][1]].empty):
-        return 7
-    return 0
+# # TODO
+# def typeOfTable(xls):
+#     if not(xls.loc[xls[xls.columns[0]] == one[0][0]].empty):
+#         return 1
+#     if not(xls.loc[xls[xls.columns[0]] == one[1][0]].empty) and not(xls.loc[xls[xls.columns[6]] == one[1][1]].empty):
+#         return 2
+#     if not(xls.loc[xls[xls.columns[0]] == one[2][0]].empty) and not(xls.loc[xls[xls.columns[5]] == one[2][1]].empty):
+#         return 3
+#     if not(xls.loc[xls[xls.columns[0]] == one[3][0]].empty) and not(xls.loc[xls[xls.columns[2]] == one[3][1]].empty):
+#         return 4
+#     if not(xls.loc[xls[xls.columns[0]] == one[4][0]].empty):
+#         return 5
+#     if not(xls.loc[xls[xls.columns[0]] == one[5][0]].empty) and not(xls.loc[xls[xls.columns[3]] == one[5][1]].empty):
+#         return 6
+#     if not(xls.loc[xls[xls.columns[0]] == one[6][0]].empty) and not(xls.loc[xls[xls.columns[3]] == one[6][1]].empty):
+#         return 7
+#     return 0
     
 def getFilesFromPage(r, folder_to_save_files):
     links = r.html.find(".page-content__tabs__block:first-child .accordeon-inner__item-title")
@@ -80,6 +80,7 @@ def getFilesFromPage(r, folder_to_save_files):
         if os.path.exists(path_to_file):
             return False
         request.urlretrieve(file_link, path_to_file)
+        print(re.search("\w*[.]\w+", link.attrs["href"])[0] + " dowloaded")
     return True
     
 def getFilesFromAllPages(url, folder_to_save_files):
@@ -140,7 +141,7 @@ def insertDB(directory, db_filename):
         res = cursor.fetchall()
         if (res != []):
             print(f"{filename} already in DB")
-            continue
+            return
         sheetX = sheetX.dropna(axis=1,how='all')
         
         row_start = sheetX.loc[sheetX[sheetX.columns[0]] == "Код\nИнструмента"]._stat_axis[0]
@@ -179,8 +180,7 @@ def insertDB(directory, db_filename):
 
 def main():
     directory = "Downloads"
-    # getFilesFromAllPages("https://spimex.com/markets/oil_products/trades/results/?page=page-", directory)
+    getFilesFromAllPages("https://spimex.com/markets/oil_products/trades/results/?page=page-", directory)
     insertDB(directory, "db.accdb")
-    
     
 main()
