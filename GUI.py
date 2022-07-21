@@ -107,7 +107,8 @@ def reset_selected_basis():
     
 def write_to_excel(excel_name, df):
     if os.path.exists(excel_name):
-        return
+        with pd.ExcelWriter(excel_name,mode="a",engine="openpyxl",if_sheet_exists="overlay") as writer:
+            df.to_excel(writer, sheet_name="Sheet1",header=None, startrow=writer.sheets["Sheet1"].max_row,index=False)
     else:
         writer = pd.ExcelWriter(excel_name, engine="openpyxl")
         df.to_excel(writer, index=False)
