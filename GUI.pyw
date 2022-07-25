@@ -4,7 +4,8 @@ import os
 import pandas as pd
 from datetime import datetime, date
 from tkcalendar import DateEntry
-   
+from main import *
+
 def autocompleteFirst(event):
     value = e.get()
 
@@ -19,6 +20,7 @@ def autocompleteFirst(event):
     lb.delete(0, "end")
     for item in data:
         lb.insert("end", item)
+    
 
 def autocompleteSecond(event):
     value = e2.get()
@@ -39,10 +41,9 @@ def add_tool(event):
     cs = lb.curselection()[0]
     selected_item = lb.get(0, "end")[cs]
     lb2.insert("end", selected_item)
+    lb.delete([cs])
     unselected_tools.remove(selected_item)
     unselected_tools.sort()
-    
-    autocompleteFirst(event)
 
 def add_basis(event):
     cs = lb3.curselection()[0]
@@ -141,6 +142,28 @@ def update():
     for item in all_basis:
         lb3.insert("end", item)
 
+def updateDB():
+    directory = "Downloads"
+    
+    root2 = Tk()
+    scrollbar = Scrollbar(root2)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    textbox = Text(root2)
+    textbox.pack()
+    textbox.tag_config("finished", background="green", foreground="white")
+    textbox.tag_config("warning", background="red")
+    textbox.insert("end", getFilesFromAllPages("https://spimex.com/markets/oil_products/trades/results/?page=page-", directory))
+    st = insertDB(directory, "db.accdb")
+    if (st == "Файл базы данных не найден\n"):
+        textbox.insert("end", st, "warning")
+    else:
+        textbox.insert("end", st)
+        textbox.insert("end", "Обновление БД завершено", "finished")
+    
+    textbox.config(yscrollcommand=scrollbar.set)
+    scrollbar.config(command=textbox.yview)
+    
+
 try:
     conn = pyodbc.connect("Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=.\db.accdb;")
     cursor = conn.cursor()
@@ -164,6 +187,12 @@ try:
     root.title("SPB")
     root.geometry("575x600")
 
+    button3 = Button(root, text="Обновить базу данных", command=updateDB)
+    button3.grid(row=9, column=4)
+    
+    # button3 = Button(root, text="Добавить ресурс", command=updateDB)
+    # button3.grid(row=11, column=4)
+
     scrollbar = Scrollbar(root)
     scrollbar.grid(row=2, column=1, sticky="ns")
 
@@ -176,7 +205,7 @@ try:
     scrollbar4 = Scrollbar(root)
     scrollbar4.grid(row=5, column=5, sticky="ns")
 
-    lbl = Label(root, text="Название\nинструмента")
+    lbl = Label(root, text="Название\nресурса")
     lbl.grid(column=0, row=0)
 
     e = Entry(root, width=35)
