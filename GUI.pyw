@@ -1,10 +1,11 @@
+from glob import glob
 from tkinter import *
 import pyodbc
 import os
 import pandas as pd
 from datetime import datetime, date
 from tkcalendar import DateEntry
-from main import *
+from data import *
 
 def autocompleteFirst(event):
     value = e.get()
@@ -106,6 +107,8 @@ def write_to_excel(excel_name, df):
         writer.save()
     
 def export():
+    global conn
+    cursor = conn.cursor()
     isFinded = False
     now = datetime.now()
     date_time = "Экспорт " + now.strftime("%d.%m.%Y_%H.%M")
@@ -133,6 +136,7 @@ def export():
             lbl3.configure(text="Экспорт завершен")
     if not(isFinded):
         lbl3.configure(text="Нет соответствий")
+    cursor.close()
     return
     
 def update():
@@ -143,8 +147,8 @@ def update():
         lb3.insert("end", item)
 
 def updateDB():
+    global conn
     directory = "Downloads"
-    
     root2 = Tk()
     scrollbar = Scrollbar(root2)
     scrollbar.pack(side=RIGHT, fill=Y)
@@ -153,26 +157,47 @@ def updateDB():
     textbox.tag_config("finished", background="green", foreground="white")
     textbox.tag_config("warning", background="red")
     textbox.insert("end", getFilesFromAllPages("https://spimex.com/markets/oil_products/trades/results/?page=page-", directory))
-    st = insertDB(directory, "db.accdb")
-    if (st == "Файл базы данных не найден\n"):
-        textbox.insert("end", st, "warning")
+    if (all_tools == []):
+        textbox.insert("end", "Файл с ресурсами отсутствует\n", "warning")
     else:
-        textbox.insert("end", st)
-        textbox.insert("end", "Обновление БД завершено", "finished")
+        cursor = conn.cursor()
+        for tov in all_tools:
+            if (tov == "Газы углеводородные сжиженные"):
+                    tov = "СУГ"
+            cursor.execute(f"SELECT Товар FROM Главная Where Товар='{tov}';")
+            x = cursor.fetchone()
+            if not(x):
+                textbox.insert("end", f"В БД обновлён ресурс: {tov}\n")
+                cursor.execute(f"UPDATE Главная SET Главная.Товар = '{tov}' WHERE InStr(НаименованиеИнструмента,'{tov}')<>0;")
+        st = insertDB(directory, conn)
+        if (st == "Файл базы данных не найден\n"):
+            textbox.insert("end", st, "warning")
+        else:
+            textbox.insert("end", st)
+        cursor.close()
+    textbox.insert("end", "Обновление БД завершено", "finished")
     
     textbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=textbox.yview)
     
+def popup(text):
+    root = Tk()
+    root.title("Warning")
+    root.geometry("300x150")
+    lbl = Label(root, text=text)
+    lbl.place(x=25, y=50)
+    root.mainloop()
 
 try:
     conn = pyodbc.connect("Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=.\db.accdb;")
     cursor = conn.cursor()
     cursor.execute("select distinct БазисПоставки from Главная where БазисПоставки <> ''")
     all_basis = [item[0] for item in cursor.fetchall()]
-
-    cursor.execute("select distinct Товар from Главная where Товар <> ''")
-    all_tools  = [item[0] for item in cursor.fetchall()]
-
+    cursor.close()
+    all_tools  = parseResourcesFromFile()
+    if (all_tools == []):
+        popup("Файл с ресурсами пуст или отстутствует")
+    
     all_tools = sorted(all_tools)
     all_basis = sorted(all_basis)
 
@@ -265,12 +290,14 @@ try:
     scrollbar3.config(command=lb3.yview)
     scrollbar4.config(command=lb4.yview)
 
+
+
     update()
     
     root.resizable(0, 0)
     root.mainloop()
-    cursor.close()
-    conn.close() 
+    
+    conn.close()
     
 except pyodbc.Error as e:
     print("DB not found")
