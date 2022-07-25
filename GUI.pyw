@@ -146,6 +146,36 @@ def update():
     for item in all_basis:
         lb3.insert("end", item)
 
+def updateRecources():
+    global conn
+    global all_tools
+    all_tools  = parseResourcesFromFile()
+    
+    root2 = Tk()
+    scrollbar = Scrollbar(root2)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    textbox = Text(root2)
+    textbox.pack()
+    textbox.tag_config("finished", background="green", foreground="white")
+    textbox.tag_config("warning", background="red")
+    if (all_tools == []):
+        textbox.insert("end", "Файл с ресурсами отсутствует или пуст\n", "warning")
+    else:
+        cursor = conn.cursor()
+        for tov in all_tools:
+            if (tov == "Газы углеводородные сжиженные"):
+                    tov = "СУГ"
+            cursor.execute(f"SELECT Товар FROM Главная Where Товар='{tov}';")
+            x = cursor.fetchone()
+            if not(x):
+                textbox.insert("end", f"В БД обновлён ресурс: {tov}\n")
+                cursor.execute(f"UPDATE Главная SET Главная.Товар = '{tov}' WHERE InStr(НаименованиеИнструмента,'{tov}')<>0;")
+        cursor.close()
+    textbox.insert("end", "Ресурсы обновлены", "finished")
+    
+    textbox.config(yscrollcommand=scrollbar.set)
+    scrollbar.config(command=textbox.yview)
+
 def updateDB():
     global conn
     directory = "Downloads"
@@ -157,24 +187,11 @@ def updateDB():
     textbox.tag_config("finished", background="green", foreground="white")
     textbox.tag_config("warning", background="red")
     textbox.insert("end", getFilesFromAllPages("https://spimex.com/markets/oil_products/trades/results/?page=page-", directory))
-    if (all_tools == []):
-        textbox.insert("end", "Файл с ресурсами отсутствует\n", "warning")
+    st = insertDB(directory, conn)
+    if (st == "Файл базы данных не найден\n"):
+        textbox.insert("end", st, "warning")
     else:
-        cursor = conn.cursor()
-        for tov in all_tools:
-            if (tov == "Газы углеводородные сжиженные"):
-                    tov = "СУГ"
-            cursor.execute(f"SELECT Товар FROM Главная Where Товар='{tov}';")
-            x = cursor.fetchone()
-            if not(x):
-                textbox.insert("end", f"В БД обновлён ресурс: {tov}\n")
-                cursor.execute(f"UPDATE Главная SET Главная.Товар = '{tov}' WHERE InStr(НаименованиеИнструмента,'{tov}')<>0;")
-        st = insertDB(directory, conn)
-        if (st == "Файл базы данных не найден\n"):
-            textbox.insert("end", st, "warning")
-        else:
-            textbox.insert("end", st)
-        cursor.close()
+        textbox.insert("end", st)
     textbox.insert("end", "Обновление БД завершено", "finished")
     
     textbox.config(yscrollcommand=scrollbar.set)
@@ -215,8 +232,8 @@ try:
     button3 = Button(root, text="Обновить базу данных", command=updateDB)
     button3.grid(row=9, column=4)
     
-    # button3 = Button(root, text="Добавить ресурс", command=updateDB)
-    # button3.grid(row=11, column=4)
+    button4 = Button(root, text="Обновить ресурсы", command=updateRecources)
+    button4.grid(row=11, column=4)
 
     scrollbar = Scrollbar(root)
     scrollbar.grid(row=2, column=1, sticky="ns")
