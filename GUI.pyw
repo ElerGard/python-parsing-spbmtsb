@@ -50,10 +50,9 @@ def add_basis(event):
     cs = lb3.curselection()[0]
     selected_item = lb3.get(0, "end")[cs]
     lb4.insert("end", selected_item)
+    lb3.delete([cs])
     unselected_basis.remove(selected_item)
     unselected_basis.sort()
-    
-    autocompleteSecond(event)
     
 def del_tool(event):
     cs = lb2.curselection()[0]
