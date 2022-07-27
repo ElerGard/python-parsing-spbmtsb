@@ -1,12 +1,12 @@
+import string
 from time import sleep
 from requests_html import HTMLSession
 from urllib import request
 import re
 import os
-import pyodbc
 import pandas as pd
 
-def getFilesFromPage(r, folder_to_save_files, results_of_work):
+def getFilesFromPage(r, folder_to_save_files, results_of_work) -> tuple:
     
     links = r.html.find(".page-content__tabs__block:first-child .accordeon-inner__item-title")
     for link in links:
@@ -25,7 +25,7 @@ def getFilesFromPage(r, folder_to_save_files, results_of_work):
         sleep(3)
     return (True, results_of_work)
     
-def getFilesFromAllPages(url, folder_to_save_files):
+def getFilesFromAllPages(url, folder_to_save_files) -> str:
     results_of_work = ""
     
     session = HTMLSession()
@@ -44,10 +44,7 @@ def getFilesFromAllPages(url, folder_to_save_files):
     results_of_work = files[1] + "Файлы загружены\n"
     return results_of_work
 
-def addResource():
-    return
-
-def parseResourcesFromFile():
+def parseResourcesFromFile() -> list:
     if os.path.exists("resources.txt"):
         text_file = open("resources.txt", "r")
         tmp = text_file.read().split('\n')
@@ -57,7 +54,7 @@ def parseResourcesFromFile():
     else:
         return []
 
-def insertDB(directory, conn):
+def insertDB(directory, conn) -> str:
     results_of_work = ""
     tmp = parseResourcesFromFile()
       
@@ -109,16 +106,6 @@ def insertDB(directory, conn):
                             sheetX.loc[row_tmp]._values[12], sheetX.loc[row_tmp]._values[13], date, tovar))
             cursor.commit()
             row_tmp += 1
-        # cursor.execute(f"UPDATE Главная SET Главная.Товар = 'asd' WHERE (((InStr([НаименованиеИнструмента],[Метанол]))<>0));") test = "Широкая фракция легких углеводородов марка А"
-        # print(filename + " type = " + str(typeOfTable(sheetX)))
-        # print(xls.loc[xls[xls.columns[0]] == one[0][0]])
         results_of_work += f"{filename} добавлен в базу данных\n"
     cursor.close()
     return results_of_work
-        
-# def main():
-#     directory = "Downloads"
-#     getFilesFromAllPages("https://spimex.com/markets/oil_products/trades/results/?page=page-", directory)
-#     insertDB(directory, "db.accdb")
-    
-# main()

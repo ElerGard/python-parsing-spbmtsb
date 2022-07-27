@@ -1,4 +1,3 @@
-from glob import glob
 from tkinter import *
 import pyodbc
 import os
@@ -7,96 +6,53 @@ from datetime import datetime, date
 from tkcalendar import DateEntry
 from data import *
 
-def autocompleteFirst(event):
-    value = e.get()
+def autocomplete(text, unselected, list) -> None:
+    value = text.get()
 
     if value == "":
-        data = unselected_tools
+        data = unselected
     else:
         data = []
-        for item in unselected_tools:
+        for item in unselected:
             if value.lower() in item.lower():
                 data.append(item)
 
-    lb.delete(0, "end")
+    list.delete(0, "end")
     for item in data:
-        lb.insert("end", item)
-    
+        list.insert("end", item)
 
-def autocompleteSecond(event):
-    value = e2.get()
+def add(list1, list2, unselected) -> None:
+    cs = list1.curselection()[0]
+    selected_item = list1.get(0, "end")[cs]
+    list2.insert("end", selected_item)
+    list1.delete([cs])
+    unselected.remove(selected_item)
+    unselected.sort()
+    
+def delete(list1, list2, unselected, text, func) -> None:
+    cs = list2.curselection()[0]
+    
+    unselected.append(list2.get(0, "end")[cs])
+    unselected.sort()
+    list2.delete(cs, cs)
+    
+    func(text, unselected, list1)
 
-    if value == "":
-        data = unselected_basis
-    else:
-        data = []
-        for item in unselected_basis:
-            if value.lower() in item.lower():
-                data.append(item)
-
-    lb3.delete(0, "end")
-    for item in data:
-        lb3.insert("end", item)
-  
-def add_tool(event):
-    cs = lb.curselection()[0]
-    selected_item = lb.get(0, "end")[cs]
-    lb2.insert("end", selected_item)
-    lb.delete([cs])
-    unselected_tools.remove(selected_item)
-    unselected_tools.sort()
-
-def add_basis(event):
-    cs = lb3.curselection()[0]
-    selected_item = lb3.get(0, "end")[cs]
-    lb4.insert("end", selected_item)
-    lb3.delete([cs])
-    unselected_basis.remove(selected_item)
-    unselected_basis.sort()
+def reset_lists(text, list1, list2, all, flag):
+    text.delete(0, "end")
+    list1.delete(0, "end")
+    list2.delete(0, "end")
     
-def del_tool(event):
-    cs = lb2.curselection()[0]
+    for item in all:
+        list1.insert("end", item)
+    if (flag == 1):
+        global unselected_tools
+        unselected_tools = all.copy()
+    if (flag == 2):
+        global unselected_basis
+        unselected_basis = all.copy()
     
-    unselected_tools.append(lb2.get(0, "end")[cs])
-    unselected_tools.sort()
-    lb2.delete(cs, cs)
-    
-    autocompleteFirst(event)
-
-def del_basis(event):
-    cs = lb4.curselection()[0]
-    
-    unselected_basis.append(lb4.get(0, "end")[cs])
-    unselected_basis.sort()
-    lb4.delete(cs, cs)
-    
-    autocompleteSecond(event)
-
-def reset_selected_tools():
-    global unselected_tools
-    
-    e.delete(0, "end")
-    lb.delete(0, "end")
-    lb2.delete(0, "end")
-    
-    for item in all_tools:
-        lb.insert("end", item)
-        
-    unselected_tools = all_tools.copy()
-
-def reset_selected_basis():
-    global unselected_basis
-    
-    e2.delete(0, "end")
-    lb3.delete(0, "end")
-    lb4.delete(0, "end")
-    
-    for item in all_basis:
-        lb3.insert("end", item)
-        
-    unselected_basis = all_basis.copy()
-    
-def write_to_excel(excel_name, df):
+def write_to_excel(excel_name, df) -> None:
     if os.path.exists(excel_name):
         with pd.ExcelWriter(excel_name,mode="a",engine="openpyxl",if_sheet_exists="overlay") as writer:
             df.to_excel(writer, sheet_name="Sheet1",header=None, startrow=writer.sheets["Sheet1"].max_row,index=False)
@@ -105,12 +61,12 @@ def write_to_excel(excel_name, df):
         df.to_excel(writer, index=False)
         writer.save()
     
-def export():
+def export() -> None:
     global conn
     cursor = conn.cursor()
     isFinded = False
     now = datetime.now()
-    date_time = "Экспорт " + now.strftime("%d.%m.%Y_%H.%M")
+    date_time = "Export " + now.strftime("%d.%m.%Y_%H.%M")
     lbl3.configure(text="Экспорт данных...")
     for tool in lb2.get(0, "end"):
         for basis in lb4.get(0, "end"):
@@ -138,14 +94,14 @@ def export():
     cursor.close()
     return
     
-def update():
+def update() -> None:
     for item in all_tools:
         lb.insert("end", item)
         
     for item in all_basis:
         lb3.insert("end", item)
 
-def updateRecources():
+def updateRecources() -> None:
     global conn
     global all_tools
     all_tools  = parseResourcesFromFile()
@@ -248,40 +204,40 @@ try:
 
     lbl = Label(root, text="Название\nресурса")
     lbl.grid(column=0, row=0)
-
-    e = Entry(root, width=35)
-    e.grid(column=0, row=1)
-    e.bind("<KeyRelease>", autocompleteFirst)
+    
+    lb2 = Listbox(root, height=10, width=35, yscrollcommand=scrollbar2.set)
+    lb2.grid(column=4, row=2)
+    lb2.bind("<Double-1>", lambda event: delete(lb, lb2, unselected_tools, e, autocomplete))
     
     lb = Listbox(root, height=10, width=35, yscrollcommand=scrollbar.set)
     lb.grid(column=0, row=2)
-    lb.bind("<Double-1>", add_tool)
+    lb.bind("<Double-1>", lambda event: add(lb, lb2, unselected_tools))
+    
+    e = Entry(root, width=35)
+    e.grid(column=0, row=1)
+    e.bind("<KeyRelease>", lambda event: autocomplete(e, unselected_tools, lb))
 
-    button = Button(root, text="Сброс", command=reset_selected_tools)
+    button = Button(root, text="Сброс", command=lambda : reset_lists(e, lb, lb2, all_tools, 1))
     button.grid(column=2, row=2, padx=33)
-
-    lb2 = Listbox(root, height=10, width=35, yscrollcommand=scrollbar2.set)
-    lb2.grid(column=4, row=2)
-    lb2.bind("<Double-1>", del_tool)
 
     #-------------------
     lbl2 = Label(root, text="Базис\nпоставки")
     lbl2.grid(column=0, row=3)
 
-    e2 = Entry(root, width=35)
-    e2.grid(column=0, row=4)
-    e2.bind("<KeyRelease>", autocompleteSecond)
-    
-    lb3 = Listbox(root, height=10, width=35, yscrollcommand=scrollbar3.set)
-    lb3.grid(column=0, row=5)
-    lb3.bind("<Double-1>", add_basis)
-
-    button2 = Button(root, text="Сброс", command=reset_selected_basis)
-    button2.grid(column=2, row=5)
-
     lb4 = Listbox(root, height=10, width=35,  yscrollcommand=scrollbar4.set)
     lb4.grid(column=4, row=5)
-    lb4.bind("<Double-1>", del_basis)
+    lb4.bind("<Double-1>", lambda event: delete(lb3, lb4, unselected_basis, e2, autocomplete))
+
+    lb3 = Listbox(root, height=10, width=35, yscrollcommand=scrollbar3.set)
+    lb3.grid(column=0, row=5)
+    lb3.bind("<Double-1>", lambda event: add(lb3, lb4, unselected_basis))
+
+    e2 = Entry(root, width=35)
+    e2.grid(column=0, row=4)
+    e2.bind("<KeyRelease>", lambda event: autocomplete(e2, unselected_basis, lb3))
+
+    button2 = Button(root, text="Сброс", command=lambda : reset_lists(e2, lb3, lb4, all_basis, 2))
+    button2.grid(column=2, row=5)
 
     lbl4 = Label(root, text="Дата от")
     lbl4.grid(column=0, row=8)
@@ -305,8 +261,6 @@ try:
     scrollbar2.config(command=lb2.yview)
     scrollbar3.config(command=lb3.yview)
     scrollbar4.config(command=lb4.yview)
-
-
 
     update()
     

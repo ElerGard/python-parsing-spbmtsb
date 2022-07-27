@@ -1,0 +1,7 @@
+urllib3
+xlrd
+openpyxl
+pandas
+requests-html
+tkcalendar
+pyodbc
