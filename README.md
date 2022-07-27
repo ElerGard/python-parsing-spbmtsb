@@ -55,10 +55,11 @@
 
 ## Структура файла бд
 
-Название таблицы: Главная\
-Структура таблицы:\
-![table](https://github.com/ElerGard/python-parsing-spbmtsb/blob/master/demo/Table_structure.jpg)
+Название таблицы: Главная
 
+Структура таблицы:
+
+![table](https://github.com/ElerGard/python-parsing-spbmtsb/blob/master/demo/Table_structure.jpg)
 ## Библиотеки
 
 Установка необходимых библиотек:
