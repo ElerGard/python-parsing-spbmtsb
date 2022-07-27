@@ -48,7 +48,8 @@ def parseResourcesFromFile() -> list:
     if os.path.exists("resources.txt"):
         text_file = open("resources.txt", "r")
         tmp = text_file.read().split('\n')
-        tmp.remove("")
+        if ("" in tmp):
+            tmp.remove("")
         
         return tmp
     else:

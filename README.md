@@ -1,7 +1,9 @@
 # python-parsing-spbmtsb
 
-Этот скрипт сделан для скачивания файлов с сайта: https://spimex.com/markets/oil_products/trades/results/ сохранения данных из файлов в БД MsAccess.
-А также для экспорта конкретных данных из БД по критериям
+Это приложение сделано для скачивания файлов с сайта: https://spimex.com/markets/oil_products/trades/results/ сохранения данных из скачанных файлов в БД MsAccess,
+а также для экспорта конкретных данных из БД по выбранным критериям. 
+
+На текущий момент, работает только с файлами после 19.10.2015
 
 ## Интерфейс
 <details>
@@ -20,6 +22,7 @@
 
 <details>
 <summary>Выбор даты</summary>
+
 ![gif](https://github.com/ElerGard/python-parsing-spbmtsb/blob/master/demo/date.gif)
 </details>
 
@@ -34,14 +37,14 @@
 
 <details>
 <summary>Кнопка Обновить базу данных</summary>
-Кнопка сброс удаляет все выбранные элементы и обнуляет строку поиска
+Кнопка обновить базу данных скачивает новые файлы с сайта и добавляет их в БД
 
 ![gif](https://github.com/ElerGard/python-parsing-spbmtsb/blob/master/demo/db.gif)
 </details>
 
 <details>
 <summary>Обновить ресурсы</summary>
-Кнопка сброс удаляет все выбранные элементы и обнуляет строку поиска
+Кнопка обновить ресурсы добавляет в БД новые ресурсы в из файла recources.txt
 
 ![gif](https://github.com/ElerGard/python-parsing-spbmtsb/blob/master/demo/res.gif)
 </details>
@@ -55,16 +58,17 @@
 
 ## Структура файла бд
 
-Название таблицы: Главная\
-Структура таблицы:\
-![table](https://github.com/ElerGard/python-parsing-spbmtsb/blob/master/demo/Table_structure.jpg)
+Название таблицы: Главная
 
+Структура таблицы:
+
+![table](https://github.com/ElerGard/python-parsing-spbmtsb/blob/master/demo/Table_structure.jpg)
 ## Библиотеки
 
 Установка необходимых библиотек:
 
     pip install -r requirements.txt
 
-## Запуск скрипта
+## Запуск исходников
 
     python GUI.pyw
